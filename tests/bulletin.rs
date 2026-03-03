@@ -125,6 +125,7 @@ async fn bootstrap_deps() -> anyhow::Result<spacebot::AgentDeps> {
             std::collections::HashMap::new(),
         )),
         injection_tx: tokio::sync::mpsc::channel(1).0,
+        topic_sync_notify: std::sync::Arc::new(tokio::sync::Notify::new()),
     })
 }
 

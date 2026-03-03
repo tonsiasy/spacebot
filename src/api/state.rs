@@ -70,6 +70,8 @@ pub struct ApiState {
     pub task_stores: arc_swap::ArcSwap<HashMap<String, Arc<TaskStore>>>,
     /// Per-agent topic stores for topic CRUD operations.
     pub topic_stores: arc_swap::ArcSwap<HashMap<String, Arc<crate::topics::TopicStore>>>,
+    /// Per-agent topic sync notifiers to wake the sync loop on demand.
+    pub topic_sync_notifiers: arc_swap::ArcSwap<HashMap<String, Arc<tokio::sync::Notify>>>,
     /// Per-agent RuntimeConfig for reading live hot-reloaded configuration.
     pub runtime_configs: ArcSwap<HashMap<String, Arc<RuntimeConfig>>>,
     /// Per-agent MCP managers for status and reconnect APIs.
@@ -251,6 +253,7 @@ impl ApiState {
             cron_schedulers: arc_swap::ArcSwap::from_pointee(HashMap::new()),
             task_stores: arc_swap::ArcSwap::from_pointee(HashMap::new()),
             topic_stores: arc_swap::ArcSwap::from_pointee(HashMap::new()),
+            topic_sync_notifiers: arc_swap::ArcSwap::from_pointee(HashMap::new()),
             runtime_configs: ArcSwap::from_pointee(HashMap::new()),
             mcp_managers: ArcSwap::from_pointee(HashMap::new()),
             sandboxes: ArcSwap::from_pointee(HashMap::new()),
@@ -543,6 +546,11 @@ impl ApiState {
     /// Set the topic stores for all agents.
     pub fn set_topic_stores(&self, stores: HashMap<String, Arc<crate::topics::TopicStore>>) {
         self.topic_stores.store(Arc::new(stores));
+    }
+
+    /// Set the topic sync notifiers for all agents.
+    pub fn set_topic_sync_notifiers(&self, notifiers: HashMap<String, Arc<tokio::sync::Notify>>) {
+        self.topic_sync_notifiers.store(Arc::new(notifiers));
     }
 
     /// Set the runtime configs for all agents.
